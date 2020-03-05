@@ -1,7 +1,6 @@
 extern crate datasize;
 use datasize::*;
 use std::fmt::{Display, Debug, Formatter, Result};
-use std::ops::Add;
 
 #[derive(Debug)]
 struct Field {
@@ -67,15 +66,11 @@ impl Field {
     fn iter(&self) -> FieldIter {
         FieldIter::new(self)
     }
-}
 
-impl Add for Field {
-    type Output = FieldAggregate;
-
-    fn add(self, rhs: Self) -> Self::Output {
+    fn concat(self, rhs: Self) -> FieldAggregate {
         let mut aggregate = FieldAggregate::new();
-        aggregate.add(self);
-        aggregate.add(rhs);
+        aggregate.concat(self);
+        aggregate.concat(rhs);
 
         aggregate
     }
@@ -98,15 +93,8 @@ impl FieldAggregate {
     fn new() -> FieldAggregate {
         FieldAggregate { fields: Vec::new() }
     }
-}
 
-// TODO: had to implement this for &mut FieldAggregate because, when doing
-// it on FieldAggregate and trying to set Output to &FieldAggregate, it wanted
-// a lifetime on the Output type and couldn't figure out how to set it
-impl Add<Field> for &mut FieldAggregate {
-    type Output = Self;
-
-    fn add(self, rhs: Field) -> Self::Output {
+    fn concat(&mut self, rhs: Field) -> &FieldAggregate {
         self.fields.push(rhs);
         self
     }
@@ -151,7 +139,8 @@ mod tests {
     fn test_addition() {
         let f1 = Field::new(2, bits!(2));
         let f2 = Field::new(3, bits!(2));
+        let f3 = Field::new(3, bits!(2));
 
-        println!("{}", f1 + f2);
+        println!("{}", f1.concat(f2).concat(f3));
     }
 }
