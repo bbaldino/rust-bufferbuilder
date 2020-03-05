@@ -21,12 +21,50 @@ fn max_value(data_size: &DataSize) -> u32 {
     max_value | 1
 }
 
+struct FieldIter<'a> {
+    curr_index: i32,
+    field: &'a Field
+}
+
+impl FieldIter<'_> {
+    fn new(field: &Field) -> FieldIter {
+        FieldIter { curr_index: field.size.bits() as i32, field }
+    }
+}
+
+/**
+  * Iterate over the bits in a Field, from left to right
+  * TODO: read more about 'anonymous lifetime' ('_)
+  */
+impl Iterator for FieldIter<'_> {
+    type Item = u32;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        match self.curr_index {
+            -1 => None,
+            index @ _ => {
+                let val = (self.field.value >> index as u32) & 0x1;
+                self.curr_index -= 1;
+                Some(val)
+            }
+        }
+    }
+}
+
+/**
+ * A Field describes a value and the DataSize of how large the containing
+ * field is for that value.
+ */
 impl Field {
     fn new(value: u32, size: DataSize) -> Field {
         if value > max_value(&size) {
             panic!("Value {} is too large to fit into {}", value, size);
         }
         Field { value, size }
+    }
+
+    fn iter(&self) -> FieldIter {
+        FieldIter::new(self)
     }
 }
 
@@ -55,5 +93,12 @@ mod tests {
     #[should_panic]
     fn test_create_invalid_field() {
         Field::new(10, bits!(2));
+    }
+
+    #[test]
+    fn test_field_iter() {
+        let f = Field::new(2, bits!(2));
+        let bits = f.iter().collect::<Vec<u32>>();
+        assert_eq!(bits, vec![0, 1, 0]);
     }
 }
