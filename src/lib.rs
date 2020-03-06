@@ -38,15 +38,14 @@ impl FieldAggregate {
                     0 => false,
                     b @ _ => panic!("invalid bit in field: {}", b)
                 };
-                if !curr_byte.add_bit(bit_val) {
+                if !curr_byte.set_next_bit(bit_val) {
                     vec.push(curr_byte.value);
                     curr_byte = InProgressByte::new();
-                    curr_byte.add_bit(bit_val);
+                    curr_byte.set_next_bit(bit_val);
                 }
             }
         }
         if !curr_byte.empty() {
-            curr_byte.collapse();
             vec.push(curr_byte.value);
         }
         vec

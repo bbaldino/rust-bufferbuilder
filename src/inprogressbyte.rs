@@ -17,24 +17,20 @@ impl InProgressByte {
     /// Add a bit (1 if [bit] is true, 0 otherwise) to the LSB position
     /// of this [InProgressByte].  Returns true if there was space in this
     /// byte to add the bit, false if not.
-    pub fn add_bit(&mut self, bit: bool) -> bool {
+    pub fn set_next_bit(&mut self, is_set: bool) -> bool {
         if self.num_bits == 8 {
             return false;
         }
-        self.num_bits += 1;
-        self.value = self.value << 1;
-        if bit {
-            self.value |= 1;
+        if is_set {
+            let bit = 1 << (8 - self.num_bits - 1);
+            self.value = self.value | bit as u8;
         }
+        // self.value = self.value << 1;
+        self.num_bits += 1;
+        // if is_set {
+        //     self.value |= 1;
+        // }
         true
-    }
-
-    /// If an [InProgressByte] isn't complete, but does have data, we'll want
-    /// to shift it to the left so that the first set bit is in the MSB
-    /// position (since we're building a buffer from left to right)
-    /// TODO: Or maybe we should set the bits from left to right to begin with?
-    pub fn collapse(&mut self) {
-        self.value = self.value << (8 - self.num_bits) as u8;
     }
 
     pub fn empty(&self) -> bool {
@@ -58,33 +54,32 @@ mod tests {
     #[test]
     fn test_adding_bits() {
         let mut x = InProgressByte::new();
-        assert_eq!(x.add_bit(true), true);
-        assert_eq!(x.value, 1);
+        assert_eq!(x.set_next_bit(true), true);
+        assert_eq!(x.value, 0b10000000);
 
-        assert_eq!(x.add_bit(false), true);
-        assert_eq!(x.value, 2);
+        assert_eq!(x.set_next_bit(false), true);
+        assert_eq!(x.value, 0b10000000);
 
-        assert_eq!(x.add_bit(true), true);
-        assert_eq!(x.value, 5);
+        assert_eq!(x.set_next_bit(true), true);
+        assert_eq!(x.value, 0b10100000);
 
-        assert_eq!(x.add_bit(false), true);
-        assert_eq!(x.value, 10);
+        assert_eq!(x.set_next_bit(false), true);
+        assert_eq!(x.value, 0b10100000);
 
-        assert_eq!(x.add_bit(true), true);
-        assert_eq!(x.value, 21);
+        assert_eq!(x.set_next_bit(true), true);
+        assert_eq!(x.value, 0b10101000);
 
-        assert_eq!(x.add_bit(false), true);
-        assert_eq!(x.value, 42);
+        assert_eq!(x.set_next_bit(false), true);
+        assert_eq!(x.value, 0b10101000);
 
-        assert_eq!(x.add_bit(true), true);
-        assert_eq!(x.value, 85);
+        assert_eq!(x.set_next_bit(true), true);
+        assert_eq!(x.value, 0b10101010);
 
-        assert_eq!(x.add_bit(false), true);
-        assert_eq!(x.value, 170);
+        assert_eq!(x.set_next_bit(false), true);
+        assert_eq!(x.value, 0b10101010);
 
         // Byte is now full
-        assert_eq!(x.add_bit(true), false);
-        assert_eq!(x.value, 170);
+        assert_eq!(x.set_next_bit(true), false);
+        assert_eq!(x.value, 0b10101010);
    }
-
 }
