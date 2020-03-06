@@ -57,7 +57,7 @@ impl<'a> Iterator for FieldIter<'a> {
  */
 impl Field {
     pub fn new(value: u32, size: DataSize) -> Field {
-        if value > max_value(&size) {
+        if !value.fits_in(&size) {
             panic!("Value {} is too large to fit into {}", value, size);
         }
         Field { value, size }
@@ -74,28 +74,10 @@ impl Display for Field {
     }
 }
 
-/**
-  * Return the maximum value that can be held in data_size
-  */
-fn max_value(data_size: &DataSize) -> u32 {
-    let mut max_value = 0u32;
-    for _ in 0..data_size.bits() - 1 {
-        max_value = max_value | 1;
-        max_value = max_value << 1;
-    }
-    // Do the last 'or' here so we don't shift again
-    max_value | 1
-}
 
 #[cfg(test)]
 mod tests {
     use super::*;
-
-    #[test]
-    fn test_max_value() {
-        assert_eq!(max_value(&bits!(2)), 3);
-        assert_eq!(max_value(&bytes!(2)), 65535);
-    }
 
     #[test]
     fn test_create_field() {
