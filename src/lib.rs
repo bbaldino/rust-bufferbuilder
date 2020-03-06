@@ -1,100 +1,24 @@
 extern crate datasize;
 use datasize::*;
-use std::fmt::{Display, Debug, Formatter, Result};
+use std::fmt::{Display, Formatter, Result};
 
 mod inprogressbyte;
 use inprogressbyte::*;
 
-#[derive(Debug)]
-struct Field {
-    value: u32,
-    size: DataSize
-}
+mod field;
+use field::*;
+use std::ops::Add;
 
-/**
-  * Return the maximum value that can be held in data_size
-  * TODO: support taking by ref and owned? add a macro to handle that?
-  */
-fn max_value(data_size: &DataSize) -> u32 {
-    let mut max_value = 0u32;
-    for _ in 0..data_size.bits() - 1 {
-        max_value = max_value | 1;
-        max_value = max_value << 1;
-    }
-    // Do the last 'or' here so we don't shift again
-    max_value | 1
-}
 
-struct FieldIter<'a> {
-    curr_index: i32,
-    field: &'a Field
-}
-
-impl<'a> FieldIter<'a> {
-    fn new(field: &Field) -> FieldIter {
-        FieldIter { curr_index: (field.size.bits() - 1) as i32, field }
-    }
-}
-
-/**
-  * Iterate over the bits in a Field, from left to right
-  */
-impl<'a> Iterator for FieldIter<'a> {
-    type Item = u32;
-
-    fn next(&mut self) -> Option<Self::Item> {
-        match self.curr_index {
-            -1 => None,
-            index @ _ => {
-                let val = (self.field.value >> index as u32) & 0x1;
-                self.curr_index -= 1;
-                Some(val)
-            }
-        }
-    }
-}
-
-/**
- * A Field describes a value and the DataSize of how large the containing
- * field is for that value.
- */
-impl Field {
-    fn new(value: u32, size: DataSize) -> Field {
-        if value > max_value(&size) {
-            panic!("Value {} is too large to fit into {}", value, size);
-        }
-        Field { value, size }
-    }
-
-    fn iter(&self) -> FieldIter {
-        FieldIter::new(self)
-    }
-
-    fn concat(self, rhs: Self) -> FieldAggregate {
-        FieldAggregate::new().concat(self).concat(rhs)
-    }
-}
-
-impl Display for Field {
-    fn fmt(&self, f: &mut Formatter<'_>) -> Result {
-        write!(f, "{} ({})", self.value, self.size)
-    }
-}
-
-/// An aggregation of [Field]s, which can be serialized into oa
+/// An aggregation of [Field]s, which can be serialized into a
 /// [Vec<u32>]
-struct FieldAggregate {
+pub struct FieldAggregate {
     fields: Vec<Field>
 }
 
 impl FieldAggregate {
     fn new() -> FieldAggregate {
         FieldAggregate { fields: Vec::new() }
-    }
-
-    fn concat(mut self, rhs: Field) -> FieldAggregate {
-        self.fields.push(rhs);
-        self
     }
 
     /// Collapse a [FieldAggregate] into a u8 Vec.
@@ -136,33 +60,26 @@ impl Display for FieldAggregate {
     }
 }
 
+impl Add<Field> for FieldAggregate {
+    type Output = FieldAggregate;
+
+    fn add(mut self, rhs: Field) -> Self::Output {
+        self.fields.push(rhs);
+        self
+    }
+}
+
+impl Add for Field {
+    type Output = FieldAggregate;
+
+    fn add(self, rhs: Field) -> Self::Output {
+        FieldAggregate::new().add(self).add(rhs)
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
-
-    #[test]
-    fn test_max_value() {
-        assert_eq!(max_value(&bits!(2)), 3);
-        assert_eq!(max_value(&bytes!(2)), 65535);
-    }
-
-    #[test]
-    fn test_create_field() {
-        Field::new(3, bits!(2));
-    }
-
-    #[test]
-    #[should_panic]
-    fn test_create_invalid_field() {
-        Field::new(10, bits!(2));
-    }
-
-    #[test]
-    fn test_field_iter() {
-        let f = Field::new(2, bits!(2));
-        let bits = f.iter().collect::<Vec<u32>>();
-        assert_eq!(bits, vec![1, 0]);
-    }
 
     #[test]
     fn test_addition() {
@@ -170,14 +87,14 @@ mod tests {
         let f2 = Field::new(3, bits!(2));
         let f3 = Field::new(3, bits!(2));
 
-        let agg = f1.concat(f2).concat(f3);
+        let agg = f1 + f2 + f3;
         assert_eq!(agg.fields.len(), 3);
     }
 
     #[test]
     fn test_to_buf() {
-        let vec = Field::new(2, bits!(2))
-            .concat(Field::new(3, bits!(3)))
+        let vec = (Field::new(2, bits!(2))
+            + Field::new(3, bits!(3)))
             .to_buf();
         assert_eq!(vec.len(), 1);
         assert_eq!(vec[0], 152u8);
