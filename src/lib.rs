@@ -33,15 +33,10 @@ impl FieldAggregate {
         let mut curr_byte = InProgressByte::new();
         for field in &self.fields {
             for bit in field.iter() {
-                let bit_val = match bit {
-                    1 => true,
-                    0 => false,
-                    b @ _ => panic!("invalid bit in field: {}", b)
-                };
-                if !curr_byte.set_next_bit(bit_val) {
+                if !curr_byte.set_next_bit(bit) {
                     vec.push(curr_byte.value);
                     curr_byte = InProgressByte::new();
-                    curr_byte.set_next_bit(bit_val);
+                    curr_byte.set_next_bit(bit);
                 }
             }
         }

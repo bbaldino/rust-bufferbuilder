@@ -20,11 +20,24 @@ impl<'a> FieldIter<'a> {
     }
 }
 
-/**
-  * Iterate over the bits in a Field, from left to right
-  */
+/// A wrapper for a u32 such that we can define [Into<bool>] to easily
+/// convert a masked bit into a bool.
+/// TODO: could this be useful to use elsewhere?
+struct Bit(u32);
+
+impl Into<bool> for Bit {
+    fn into(self) -> bool {
+        match self.0 {
+            0 => false,
+            _ => true
+        }
+    }
+}
+
+/// Iterate over the bits in a [Field] as [bool]s ([true] if the bit
+/// is set, [false] if not)
 impl<'a> Iterator for FieldIter<'a> {
-    type Item = u32;
+    type Item = bool;
 
     fn next(&mut self) -> Option<Self::Item> {
         match self.curr_index {
@@ -32,7 +45,7 @@ impl<'a> Iterator for FieldIter<'a> {
             index @ _ => {
                 let val = (self.field.value >> index as u32) & 0x1;
                 self.curr_index -= 1;
-                Some(val)
+                Some(Bit(val).into())
             }
         }
     }
@@ -98,8 +111,8 @@ mod tests {
     #[test]
     fn test_field_iter() {
         let f = Field::new(2, bits!(2));
-        let bits = f.iter().collect::<Vec<u32>>();
-        assert_eq!(bits, vec![1, 0]);
+        let bits = f.iter().collect::<Vec<bool>>();
+        assert_eq!(bits, vec![true, false]);
     }
 }
 
