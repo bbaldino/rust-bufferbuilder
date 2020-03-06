@@ -3,7 +3,7 @@ use std::fmt::{Display, Formatter, Result};
 #[derive(Debug)]
 pub struct InProgressByte {
     num_bits: u32,
-    value: u8
+    pub value: u8
 }
 
 impl InProgressByte {
@@ -17,7 +17,7 @@ impl InProgressByte {
     /// Add a bit (1 if [bit] is true, 0 otherwise) to the LSB position
     /// of this [InProgressByte].  Returns true if there was space in this
     /// byte to add the bit, false if not.
-    fn add_bit(&mut self, bit: bool) -> bool {
+    pub fn add_bit(&mut self, bit: bool) -> bool {
         if self.num_bits == 8 {
             return false;
         }
@@ -27,6 +27,18 @@ impl InProgressByte {
             self.value |= 1;
         }
         true
+    }
+
+    /// If an [InProgressByte] isn't complete, but does have data, we'll want
+    /// to shift it to the left so that the first set bit is in the MSB
+    /// position (since we're building a buffer from left to right)
+    /// TODO: Or maybe we should set the bits from left to right to begin with?
+    pub fn collapse(&mut self) {
+        self.value = self.value << (8 - self.num_bits) as u8;
+    }
+
+    pub fn empty(&self) -> bool {
+        return self.num_bits == 0;
     }
 }
 
