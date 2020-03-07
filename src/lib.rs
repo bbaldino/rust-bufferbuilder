@@ -9,6 +9,8 @@ mod field;
 use field::*;
 use std::ops::Add;
 
+mod field_macros;
+
 
 /// An aggregation of [Field]s, which can be serialized into a
 /// [Vec<u32>]
@@ -71,6 +73,12 @@ impl Add for Field {
     }
 }
 
+macro_rules! rtpversion {
+    ($version:expr) => {
+        Field::new($version, bits!(2))
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -92,5 +100,12 @@ mod tests {
             .to_buf();
         assert_eq!(vec.len(), 1);
         assert_eq!(vec[0], 152u8);
+    }
+
+    #[test]
+    fn blah() {
+        let x = rtpversion!(1);
+        println!("{}", x);
+
     }
 }

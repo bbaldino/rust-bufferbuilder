@@ -1,6 +1,4 @@
-extern crate datasize;
 use datasize::*;
-
 use std::fmt::{Display, Debug, Formatter, Result};
 
 #[derive(Debug)]
@@ -73,7 +71,6 @@ impl Display for Field {
         write!(f, "{} ({})", self.value, self.size)
     }
 }
-
 
 #[cfg(test)]
 mod tests {
