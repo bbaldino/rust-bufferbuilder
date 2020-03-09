@@ -3,7 +3,7 @@ use std::ops::Add;
 
 use crate::field::*;
 use crate::inprogressbyte::*;
-use datasize::*;
+use datasize::datasize::*;
 
 /// An aggregation of [Field]s, which can be serialized into a
 /// [Vec<u32>]
@@ -12,12 +12,12 @@ pub struct FieldAggregate {
 }
 
 impl FieldAggregate {
-    fn new() -> FieldAggregate {
+    pub fn new() -> FieldAggregate {
         FieldAggregate { fields: Vec::new() }
     }
 
     /// Collapse a [FieldAggregate] into a u8 Vec.
-    fn to_buf(&self) -> Vec<u8> {
+    pub fn to_buf(&self) -> Vec<u8> {
         let size_bits = self.fields.iter().fold(0, |acc, x| acc + x.size.bits());
         // Add an extra byte if there are bits left over
         let size_bytes = match size_bits {

@@ -1,5 +1,5 @@
-extern crate datasize;
+#[macro_use] extern crate datasize;
 mod inprogressbyte;
-mod field;
+pub mod field;
 mod field_macros;
-mod fieldaggregate;
+pub mod fieldaggregate;

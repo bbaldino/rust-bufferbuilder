@@ -1,5 +1,5 @@
+use datasize::datasize::*;
 use crate::field::*;
-use datasize::*;
 
 /// TODO: is there a way we can avoid defining this for every type (which
 /// datasize! already does)?
@@ -8,11 +8,13 @@ macro_rules! field {
     ($value:expr, $size:literal bits) => {
         Field::new($value, datasize!($size bits))
     }
+    //TODO: defs for the other size types (bytes, etc.)
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
+    #[macro_use] use datasize::datasize_macros::*;
 
     #[test]
     fn test() {

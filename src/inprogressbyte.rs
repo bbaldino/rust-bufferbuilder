@@ -14,9 +14,9 @@ impl InProgressByte {
         }
     }
 
-    /// Add a bit (1 if [bit] is true, 0 otherwise) to the LSB position
-    /// of this [InProgressByte].  Returns true if there was space in this
-    /// byte to add the bit, false if not.
+    /// Add a bit (1 if [bit] is true, 0 otherwise) to this [InProgressByte].
+    /// Returns true if there was space in this byte to add the bit, false
+    /// if not.
     pub fn set_next_bit(&mut self, is_set: bool) -> bool {
         if self.num_bits == 8 {
             return false;
@@ -25,11 +25,7 @@ impl InProgressByte {
             let bit = 1 << (8 - self.num_bits - 1);
             self.value = self.value | bit as u8;
         }
-        // self.value = self.value << 1;
         self.num_bits += 1;
-        // if is_set {
-        //     self.value |= 1;
-        // }
         true
     }
 
@@ -40,9 +36,6 @@ impl InProgressByte {
 
 impl Display for InProgressByte {
     fn fmt(&self, f: &mut Formatter<'_>) -> Result {
-        // Ideally we'd only pad as many bits as we've set so far, but
-        // doing that dynamically isn't supported in stdlib.  Look for
-        // a crate?
         write!(f, "{:08b}", self.value)
     }
 }

@@ -1,5 +1,7 @@
-use datasize::*;
 use std::fmt::{Display, Debug, Formatter, Result};
+
+use datasize::datasize::*;
+use datasize::fits::*;
 
 #[derive(Debug)]
 pub struct Field {
@@ -75,6 +77,8 @@ impl Display for Field {
 #[cfg(test)]
 mod tests {
     use super::*;
+    extern crate datasize;
+    use datasize::*;
 
     #[test]
     fn test_create_field() {
