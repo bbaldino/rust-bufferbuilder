@@ -60,7 +60,7 @@ impl Add<Field> for FieldAggregate {
 impl Add for Field {
     type Output = FieldAggregate;
 
-    fn add(self, rhs: Field) -> Self::Output {
+    fn add(self, rhs: Self) -> Self::Output {
         FieldAggregate::new().add(self).add(rhs)
     }
 }

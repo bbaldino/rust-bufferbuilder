@@ -5,7 +5,7 @@ use datasize::fits::*;
 
 /// A [Field] consists of a value and the size (e.g. number of bits) that
 /// value should occupy in a buffer.
-#[derive(Debug)]
+#[derive(Debug, Copy, Clone)]
 pub struct Field {
     pub value: u32,
     pub size: DataSize
