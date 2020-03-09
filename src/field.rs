@@ -3,12 +3,15 @@ use std::fmt::{Display, Debug, Formatter, Result};
 use datasize::datasize::*;
 use datasize::fits::*;
 
+/// A [Field] consists of a value and the size (e.g. number of bits) that
+/// value should occupy in a buffer.
 #[derive(Debug)]
 pub struct Field {
     pub value: u32,
     pub size: DataSize
 }
 
+/// An iterator type for iterating over the bits of a [Field]
 pub struct FieldIter<'a> {
     curr_index: i32,
     field: &'a Field
@@ -51,11 +54,8 @@ impl<'a> Iterator for FieldIter<'a> {
     }
 }
 
-/**
- * A Field describes a value and the DataSize of how large the containing
- * field is for that value.
- */
 impl Field {
+    /// Create a new [Field] with value [value] and size [size]
     pub fn new(value: u32, size: DataSize) -> Field {
         if !value.fits_in(&size) {
             panic!("Value {} is too large to fit into {}", value, size);
@@ -63,6 +63,7 @@ impl Field {
         Field { value, size }
     }
 
+    /// Create an iterator over the bits in this field
     pub fn iter(&self) -> FieldIter {
         FieldIter::new(self)
     }
